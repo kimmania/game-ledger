@@ -226,8 +226,8 @@ export class LedgerApp {
 
   deal(): void {
     if (this.state.completed) return;
-    const empty = this.state.tubes.some((t) => t.coins.length === 0);
-    if (!empty) {
+    const hasSpace = this.state.tubes.some((t) => t.coins.length < this.folio.capacity);
+    if (!hasSpace) {
       this.handlers.play('invalid');
       return;
     }

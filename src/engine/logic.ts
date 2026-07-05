@@ -155,10 +155,10 @@ function weightedMetal(folio: Folio): Metal {
 }
 
 export function deal(state: GameState, folio: Folio): void {
-  for (const tube of state.tubes) {
-    if (tube.coins.length === 0) {
-      tube.coins.push({ metal: weightedMetal(folio), id: makeId() });
-    }
+  const tubesWithSpace = state.tubes.filter((t) => t.coins.length < folio.capacity);
+  if (tubesWithSpace.length === 0) return;
+  for (const tube of tubesWithSpace) {
+    tube.coins.push({ metal: weightedMetal(folio), id: makeId() });
   }
 }
 
