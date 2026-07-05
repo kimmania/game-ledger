@@ -11,6 +11,7 @@ import {
   restore,
   checkFolioComplete,
   evaluateStars,
+  carryForwardState,
   loadProgress,
   saveProgress,
   saveGame,
@@ -57,6 +58,20 @@ export class LedgerApp {
     this.folio = getFolio(id);
     this.state = this.createFreshState();
     this.persist();
+    this.handlers.render();
+  }
+
+  advanceFolio(): void {
+    const next = nextFolioId(this.folio.id);
+    if (!next) {
+      this.handlers.showToast('All folios complete!');
+      return;
+    }
+    this.folio = getFolio(next);
+    this.state = carryForwardState(this.state, this.folio);
+    this.state.register = this.register;
+    this.persist();
+    this.checkCompletion();
     this.handlers.render();
   }
 

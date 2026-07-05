@@ -11,7 +11,8 @@ export {
   hasLegalMoves,
   countSeals,
   checkFolioComplete,
-  evaluateStars
+  evaluateStars,
+  carryForwardState
 } from './logic.ts';
 export { METAL_CONFIG, svgShape } from './metals.ts';
 export {

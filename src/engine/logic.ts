@@ -20,6 +20,38 @@ function cloneTubes(tubes: Tube[]): Tube[] {
   return tubes.map((tube) => ({ coins: tube.coins.map(cloneCoin) }));
 }
 
+export function carryForwardState(prev: GameState, folio: Folio): GameState {
+  const state: GameState = {
+    folioId: folio.id,
+    tubes: cloneTubes(prev.tubes),
+    pool: [],
+    planchets: folio.planchets,
+    flushes: folio.flushes,
+    moves: 0,
+    score: prev.score,
+    selectedTube: null,
+    pendingState: 'none',
+    completed: false,
+    stars: 0,
+    history: [],
+    register: new Set(prev.register),
+    comboMultiplier: 1
+  };
+
+  // Expand tube count and normalize capacity for the new folio
+  while (state.tubes.length < folio.tubes) {
+    state.tubes.push({ coins: [] });
+  }
+  for (const tube of state.tubes) {
+    if (tube.coins.length > folio.capacity) {
+      tube.coins.splice(0, tube.coins.length - folio.capacity);
+    }
+  }
+
+  deal(state, folio);
+  return state;
+}
+
 export function nextTier(metal: Metal): Metal | null {
   const idx = METALS.indexOf(metal);
   return idx < METALS.length - 1 ? METALS[idx + 1] : null;

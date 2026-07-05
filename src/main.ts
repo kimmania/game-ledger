@@ -19,6 +19,8 @@ function bootstrap(): void {
       if (region) region.textContent = text;
     }
   });
+  // expose for debugging / smoke tests
+  (window as unknown as { __app: LedgerApp }).__app = app;
 
   function render() {
     ui.renderGame(app.state, app.folio, {
@@ -29,10 +31,7 @@ function bootstrap(): void {
       reset: () => app.resetFolio(),
       settings: () => openSettings(),
       help: () => openHelp(),
-      nextFolio: () => {
-        const nextId = nextFolioIdSafe(app.folio.id);
-        if (nextId) app.startFolio(nextId);
-      }
+      nextFolio: () => app.advanceFolio()
     });
   }
 
@@ -41,19 +40,18 @@ function bootstrap(): void {
   }
 
   function openSettings() {
-    ui.renderSettings(settings, (patch) => {
-      settings = { ...settings, ...patch };
-      saveSettings(settings);
-      audio.enabled = settings.sound;
-      document.body.classList.toggle('reduced-motion', settings.reducedMotion);
-      document.body.classList.toggle('color-blind', settings.colorBlind);
-    }, () => render());
-  }
-
-  function nextFolioIdSafe(currentId: string): string | null {
-    const ids = ['coaling-1', 'teller-1', 'counting-1', 'vault-1', 'assayer-1', 'director-1', 'aetherium-1'];
-    const idx = ids.indexOf(currentId);
-    return idx >= 0 && idx < ids.length - 1 ? ids[idx + 1] : null;
+    ui.renderSettings(
+      settings,
+      (patch) => {
+        settings = { ...settings, ...patch };
+        saveSettings(settings);
+        audio.enabled = settings.sound;
+        document.body.classList.toggle('reduced-motion', settings.reducedMotion);
+        document.body.classList.toggle('color-blind', settings.colorBlind);
+        render();
+      },
+      () => render()
+    );
   }
 
   // Accessibility live region
