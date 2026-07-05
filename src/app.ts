@@ -71,6 +71,8 @@ export class LedgerApp {
 
   constructor(handlers: AppHandlers) {
     this.handlers = handlers;
+    this.progress = loadProgress();
+    this.register = loadRegister();
     const saved = loadGame();
     if (saved && FOLIO_ORDER.includes(saved.folioId)) {
       this.folio = getFolio(saved.folioId);
@@ -79,12 +81,12 @@ export class LedgerApp {
         deal(this.state, this.folio);
       }
     } else {
-      this.folio = getFolio('coaling-1');
+      this.folio = getFolio('mine-1');
       this.state = this.createFreshState();
     }
     this.state.register = this.register;
-    // seed register with iron and any coins already present on the board
-    this.state.register.add('iron');
+    // seed register with base metal and any coins already present on the board
+    this.state.register.add('ore');
     for (const tube of this.state.tubes) {
       for (const coin of tube.coins) {
         if (coin.metal !== ('planchet' as unknown as typeof coin.metal)) {

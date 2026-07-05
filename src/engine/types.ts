@@ -1,5 +1,33 @@
-export type Metal = 'iron' | 'copper' | 'silver' | 'gold' | 'platinum' | 'aetherium';
-export const METALS: Metal[] = ['iron', 'copper', 'silver', 'gold', 'platinum', 'aetherium'];
+export type Metal =
+  | 'ore'
+  | 'tin'
+  | 'lead'
+  | 'iron'
+  | 'brass'
+  | 'copper'
+  | 'silver'
+  | 'gold'
+  | 'electrum'
+  | 'platinum'
+  | 'mithril'
+  | 'orichalcum'
+  | 'aetherium';
+
+export const METALS: Metal[] = [
+  'ore',
+  'tin',
+  'lead',
+  'iron',
+  'brass',
+  'copper',
+  'silver',
+  'gold',
+  'electrum',
+  'platinum',
+  'mithril',
+  'orichalcum',
+  'aetherium'
+];
 
 export type Coin = {
   metal: Metal;

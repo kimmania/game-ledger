@@ -129,18 +129,32 @@ export function checkMerges(tubes: Tube[], capacity: number): { changes: number;
 
 function mergeValue(from: Metal): number {
   switch (from) {
+    case 'ore':
+      return 10;
+    case 'tin':
+      return 20;
+    case 'lead':
+      return 30;
     case 'iron':
       return 50;
+    case 'brass':
+      return 75;
     case 'copper':
       return 100;
     case 'silver':
       return 200;
+    case 'electrum':
+      return 300;
     case 'gold':
       return 400;
     case 'platinum':
       return 800;
-    case 'aetherium':
+    case 'mithril':
+      return 1200;
+    case 'orichalcum':
       return 1600;
+    case 'aetherium':
+      return 3200;
   }
 }
 
@@ -149,15 +163,15 @@ function weightedMetal(state: GameState, folio: Folio): Metal {
   for (const metal of folio.metals) {
     // never deal the folio's unlock metal directly
     if (metal === folio.unlockMetal) continue;
-    // only deal metals that have been discovered so far; iron is always available
-    if (metal !== 'iron' && !state.register.has(metal)) continue;
+    // only deal metals that have been discovered so far; ore is always available
+    if (metal !== 'ore' && !state.register.has(metal)) continue;
     const w = folio.weights[metal] || 0;
     for (let i = 0; i < w * 10; i++) pool.push(metal);
   }
   if (pool.length === 0) {
     return (
-      folio.metals.find((m) => m !== folio.unlockMetal && (m === 'iron' || state.register.has(m))) ||
-      'iron'
+      folio.metals.find((m) => m !== folio.unlockMetal && (m === 'ore' || state.register.has(m))) ||
+      'ore'
     );
   }
   return pool[randInt(pool.length)];
@@ -196,7 +210,7 @@ export function createGameState(folio: Folio): GameState {
     register: new Set<string>(),
     comboMultiplier: 1
   };
-  state.register.add('iron');
+  state.register.add('ore');
   deal(state, folio);
   return state;
 }
