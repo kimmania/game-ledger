@@ -1,4 +1,5 @@
 import { Metal, Coin, Tube, Folio, GameState, HistoryFrame, METALS } from './types.ts';
+import { METAL_THRESHOLD } from './metals.ts';
 
 function randInt(max: number): number {
   const arr = new Uint32Array(1);
@@ -97,7 +98,7 @@ export function performPour(source: Tube, dest: Tube, capacity: number): number 
   return moved;
 }
 
-export function checkMerges(tubes: Tube[], capacity: number): { changes: number; mergeScore: number; discovered: Metal[] } {
+export function checkMerges(tubes: Tube[], _capacity: number): { changes: number; mergeScore: number; discovered: Metal[] } {
   let changes = 0;
   let mergeScore = 0;
   const discovered: Metal[] = [];
@@ -108,11 +109,14 @@ export function checkMerges(tubes: Tube[], capacity: number): { changes: number;
     const top = topCoin.metal;
     if (top === ('planchet' as unknown as typeof top)) continue;
     const run = topRun(tube);
-    if (run === capacity) {
+    const threshold = METAL_THRESHOLD[top];
+    if (run >= threshold) {
       const nxt = nextTier(top);
       if (nxt) {
+        // consume only the threshold number of coins from the top
+        tube.coins.splice(tube.coins.length - threshold, threshold);
         const newCoin: Coin = { metal: nxt, id: makeId() };
-        tube.coins.splice(tube.coins.length - capacity, capacity, newCoin);
+        tube.coins.push(newCoin);
         changes++;
         mergeScore += mergeValue(top);
         discovered.push(nxt);
@@ -247,13 +251,11 @@ export function countSeals(state: GameState): Record<Metal, number> {
   return counts as Record<Metal, number>;
 }
 
-function hasFullTubeOf(state: GameState, metal: Metal | null, capacity: number): boolean {
-  if (!metal) return false;
-  return state.tubes.some((tube) => tube.coins.length === capacity && tube.coins.every((c) => c.metal === metal));
-}
-
 export function checkFolioComplete(state: GameState, folio: Folio): boolean {
-  return hasFullTubeOf(state, folio.unlockMetal, folio.capacity);
+  if (state.completed) return false;
+  if (!folio.unlockMetal) return false;
+  // complete as soon as the unlock metal appears on the board
+  return state.tubes.some((tube) => tube.coins.some((c) => c.metal === folio.unlockMetal));
 }
 
 export function evaluateStars(state: GameState, folio: Folio): number {

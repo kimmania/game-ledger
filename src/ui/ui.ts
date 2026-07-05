@@ -1,6 +1,19 @@
-import { GameState, Folio, Coin } from '../engine/index.ts';
-import { METAL_CONFIG, svgShape } from '../engine/metals.ts';
-import { FOLIOS } from '../folios.ts';
+import { GameState, Folio, Coin, Metal } from '../engine/index.ts';
+import { METAL_CONFIG, svgShape, METAL_THRESHOLD } from '../engine/metals.ts';
+import { FOLIOS, nextFolioId } from '../folios.ts';
+
+function nextFolioName(currentId: string): string | null {
+  const nextId = nextFolioId(currentId);
+  if (!nextId) return null;
+  const next = FOLIOS.find((f) => f.id === nextId);
+  return next?.name || null;
+}
+
+function previousMetal(metal: Metal): Metal {
+  const metals: Metal[] = ['iron', 'copper', 'silver', 'gold', 'platinum', 'aetherium'];
+  const idx = metals.indexOf(metal);
+  return metals[idx - 1] || 'iron';
+}
 
 export class UIController {
   root: HTMLElement;
@@ -72,12 +85,12 @@ export class UIController {
       el.appendChild(item);
       return el;
     }
-    const cfg = METAL_CONFIG[folio.unlockMetal as keyof typeof METAL_CONFIG];
-    if (!cfg) return el;
+    const cfg = METAL_CONFIG[folio.unlockMetal];
+    const need = METAL_THRESHOLD[previousMetal(folio.unlockMetal)];
     const item = document.createElement('div');
     item.className = 'target-pip';
     item.style.setProperty('--glow', cfg.glow);
-    item.innerHTML = `<span class="target-shape">${svgShape(cfg.shape, cfg.hex)}</span><span class="target-label">Forge ${cfg.label}: fill any tube</span>`;
+    item.innerHTML = `<span class="target-shape">${svgShape(cfg.shape, cfg.hex)}</span><span class="target-label">Forge ${cfg.label}: merge ${need} of the preceding metal</span>`;
     el.appendChild(item);
     return el;
   }
@@ -182,6 +195,14 @@ export class UIController {
     title.textContent = 'Folio Complete';
     inner.appendChild(title);
 
+    const cfg = folio.unlockMetal ? METAL_CONFIG[folio.unlockMetal] : null;
+    if (cfg) {
+      const unlock = document.createElement('p');
+      unlock.className = 'unlock-announce';
+      unlock.textContent = `Unlocked ${cfg.label}!`;
+      inner.appendChild(unlock);
+    }
+
     const stars = document.createElement('div');
     stars.className = 'stars';
     stars.textContent = '★'.repeat(state.stars) + '☆'.repeat(3 - state.stars);
@@ -190,6 +211,14 @@ export class UIController {
     const detail = document.createElement('p');
     detail.textContent = `Moves: ${state.moves} / ${folio.moveBudget} · Score: ${state.score}`;
     inner.appendChild(detail);
+
+    const nextName = nextFolioName(folio.id);
+    if (nextName) {
+      const next = document.createElement('p');
+      next.className = 'next-folio';
+      next.textContent = `Next: ${nextName}`;
+      inner.appendChild(next);
+    }
 
     const buttons = document.createElement('div');
     buttons.className = 'modal-buttons';

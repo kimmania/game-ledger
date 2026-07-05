@@ -9,6 +9,14 @@ export const METAL_CONFIG: Record<Metal, { label: string; hex: string; shape: st
   aetherium: { label: 'Aetherium', hex: '#9B59B6', shape: 'rings', glow: 'rgba(46,204,113,0.5)' }
 };
 
+export const METAL_THRESHOLD: Record<Metal, number> = {
+  iron: 4,
+  copper: 4,
+  silver: 5,
+  gold: 5,
+  platinum: 6,
+  aetherium: 6
+};
 export function svgShape(shape: string, color: string): string {
   switch (shape) {
     case 'grid':
