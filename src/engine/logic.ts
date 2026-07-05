@@ -142,8 +142,14 @@ function mergeValue(from: Metal): number {
 function weightedMetal(folio: Folio): Metal {
   const pool: Metal[] = [];
   for (const metal of folio.metals) {
+    // don't deal coins that are already the Folio's objective
+    if (folio.target[metal]) continue;
     const w = folio.weights[metal] || 0;
     for (let i = 0; i < w * 10; i++) pool.push(metal);
+  }
+  if (pool.length === 0) {
+    // fallback to the first non-target metal (should never happen in authored folios)
+    return folio.metals.find((m) => !folio.target[m]) || folio.metals[0];
   }
   return pool[randInt(pool.length)];
 }
