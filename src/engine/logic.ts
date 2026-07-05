@@ -1,5 +1,4 @@
 import { Metal, Coin, Tube, Folio, GameState, HistoryFrame, METALS } from './types.ts';
-import { METAL_THRESHOLD } from './metals.ts';
 
 function randInt(max: number): number {
   const arr = new Uint32Array(1);
@@ -98,23 +97,25 @@ export function performPour(source: Tube, dest: Tube, capacity: number): number 
   return moved;
 }
 
-export function checkMerges(tubes: Tube[], _capacity: number): { changes: number; mergeScore: number; discovered: Metal[] } {
+export function checkMerges(tubes: Tube[], capacity: number): { changes: number; mergeScore: number; discovered: Metal[] } {
   let changes = 0;
   let mergeScore = 0;
   const discovered: Metal[] = [];
 
   for (const tube of tubes) {
+    if (tube.coins.length > capacity) {
+      // tube should never exceed capacity; clamp as a safety net
+      tube.coins.splice(0, tube.coins.length - capacity);
+    }
     const topCoin = tube.coins[tube.coins.length - 1];
     if (!topCoin) continue;
     const top = topCoin.metal;
     if (top === ('planchet' as unknown as typeof top)) continue;
     const run = topRun(tube);
-    const threshold = METAL_THRESHOLD[top];
-    if (run >= threshold) {
+    if (run === capacity && run >= 2) {
       const nxt = nextTier(top);
       if (nxt) {
-        // consume only the threshold number of coins from the top
-        tube.coins.splice(tube.coins.length - threshold, threshold);
+        tube.coins.splice(tube.coins.length - capacity, capacity);
         const newCoin: Coin = { metal: nxt, id: makeId() };
         tube.coins.push(newCoin);
         changes++;

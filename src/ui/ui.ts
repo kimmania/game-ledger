@@ -1,5 +1,5 @@
-import { GameState, Folio, Coin, Metal } from '../engine/index.ts';
-import { METAL_CONFIG, svgShape, METAL_THRESHOLD } from '../engine/metals.ts';
+import { GameState, Folio, Coin } from '../engine/index.ts';
+import { METAL_CONFIG, svgShape } from '../engine/metals.ts';
 import { FOLIOS, nextFolioId } from '../folios.ts';
 
 function nextFolioName(currentId: string): string | null {
@@ -7,12 +7,6 @@ function nextFolioName(currentId: string): string | null {
   if (!nextId) return null;
   const next = FOLIOS.find((f) => f.id === nextId);
   return next?.name || null;
-}
-
-function previousMetal(metal: Metal): Metal {
-  const metals: Metal[] = ['iron', 'copper', 'silver', 'gold', 'platinum', 'aetherium'];
-  const idx = metals.indexOf(metal);
-  return metals[idx - 1] || 'iron';
 }
 
 export class UIController {
@@ -86,11 +80,10 @@ export class UIController {
       return el;
     }
     const cfg = METAL_CONFIG[folio.unlockMetal];
-    const need = METAL_THRESHOLD[previousMetal(folio.unlockMetal)];
     const item = document.createElement('div');
     item.className = 'target-pip';
     item.style.setProperty('--glow', cfg.glow);
-    item.innerHTML = `<span class="target-shape">${svgShape(cfg.shape, cfg.hex)}</span><span class="target-label">Forge ${cfg.label}: merge ${need} of the preceding metal</span>`;
+    item.innerHTML = `<span class="target-shape">${svgShape(cfg.shape, cfg.hex)}</span><span class="target-label">Forge ${cfg.label}: fill any tube</span>`;
     el.appendChild(item);
     return el;
   }
