@@ -258,7 +258,7 @@ export class LedgerApp {
     saveProgress(this.progress);
     saveRegister(this.state.register);
 
-    setTimeout(() => this.handlers.render(), 800);
+    setTimeout(() => this.handlers.render(), 1800);
   }
 }
 

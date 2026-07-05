@@ -189,7 +189,6 @@ export class UIController {
 
     const buttons = document.createElement('div');
     buttons.className = 'modal-buttons';
-    buttons.appendChild(this.textButton('Replay', hooks.reset));
     buttons.appendChild(this.textButton('Next Folio', hooks.nextFolio));
     inner.appendChild(buttons);
 

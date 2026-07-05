@@ -139,17 +139,19 @@ function mergeValue(from: Metal): number {
   }
 }
 
-function weightedMetal(folio: Folio): Metal {
+function weightedMetal(state: GameState, folio: Folio): Metal {
   const pool: Metal[] = [];
   for (const metal of folio.metals) {
     // don't deal coins that are already the Folio's objective
     if (folio.target[metal]) continue;
+    // only deal metals that have been created/discovered so far
+    if (!state.register.has(metal) && metal !== 'iron') continue;
     const w = folio.weights[metal] || 0;
     for (let i = 0; i < w * 10; i++) pool.push(metal);
   }
   if (pool.length === 0) {
     // fallback to the first non-target metal (should never happen in authored folios)
-    return folio.metals.find((m) => !folio.target[m]) || folio.metals[0];
+    return folio.metals.find((m) => !folio.target[m] && (state.register.has(m) || m === 'iron')) || folio.metals[0];
   }
   return pool[randInt(pool.length)];
 }
@@ -158,7 +160,7 @@ export function deal(state: GameState, folio: Folio): void {
   const tubesWithSpace = state.tubes.filter((t) => t.coins.length < folio.capacity);
   if (tubesWithSpace.length === 0) return;
   for (const tube of tubesWithSpace) {
-    tube.coins.push({ metal: weightedMetal(folio), id: makeId() });
+    tube.coins.push({ metal: weightedMetal(state, folio), id: makeId() });
   }
 }
 
@@ -179,6 +181,7 @@ export function createGameState(folio: Folio): GameState {
     register: new Set<string>(),
     comboMultiplier: 1
   };
+  state.register.add('iron');
   deal(state, folio);
   return state;
 }
