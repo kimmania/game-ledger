@@ -65,16 +65,12 @@ export function saveRegister(register: Set<string>): void {
   localStorage.setItem(REGISTER_KEY, JSON.stringify(Array.from(register)));
 }
 
-export function saveGame(folioId: string, state: GameState): void {
-  localStorage.setItem(SAVE_KEY, JSON.stringify({ folioId, state }));
-}
-
 export function loadGame(): { folioId: string; state: GameState } | null {
   try {
     const raw = localStorage.getItem(SAVE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw);
-    parsed.state.register = new Set(parsed.state.register || []);
+    parsed.state.register = loadRegister();
     parsed.state.selectedTube = null;
     parsed.state.pendingState = 'none';
     return parsed;
@@ -82,6 +78,15 @@ export function loadGame(): { folioId: string; state: GameState } | null {
     return null;
   }
 }
+
+export function saveGame(folioId: string, state: GameState): void {
+  const snapshot = {
+    ...state,
+    register: Array.from(state.register)
+  };
+  localStorage.setItem(SAVE_KEY, JSON.stringify({ folioId, state: snapshot }));
+}
+
 
 export function clearGame(): void {
   localStorage.removeItem(SAVE_KEY);

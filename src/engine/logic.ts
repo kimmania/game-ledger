@@ -142,25 +142,35 @@ function mergeValue(from: Metal): number {
 function weightedMetal(state: GameState, folio: Folio): Metal {
   const pool: Metal[] = [];
   for (const metal of folio.metals) {
-    // don't deal coins that are already the Folio's objective
-    if (folio.target[metal]) continue;
-    // only deal metals that have been created/discovered so far
-    if (!state.register.has(metal) && metal !== 'iron') continue;
+    // never deal the folio's unlock metal directly
+    if (metal === folio.unlockMetal) continue;
+    // only deal metals that have been discovered so far; iron is always available
+    if (metal !== 'iron' && !state.register.has(metal)) continue;
     const w = folio.weights[metal] || 0;
     for (let i = 0; i < w * 10; i++) pool.push(metal);
   }
   if (pool.length === 0) {
-    // fallback to the first non-target metal (should never happen in authored folios)
-    return folio.metals.find((m) => !folio.target[m] && (state.register.has(m) || m === 'iron')) || folio.metals[0];
+    return (
+      folio.metals.find((m) => m !== folio.unlockMetal && (m === 'iron' || state.register.has(m))) ||
+      'iron'
+    );
   }
   return pool[randInt(pool.length)];
 }
 
+function eligibleTubeIndexes(state: GameState, folio: Folio): number[] {
+  return state.tubes
+    .map((_, i) => i)
+    .filter((i) => state.tubes[i].coins.length < folio.capacity);
+}
+
 export function deal(state: GameState, folio: Folio): void {
-  const tubesWithSpace = state.tubes.filter((t) => t.coins.length < folio.capacity);
-  if (tubesWithSpace.length === 0) return;
-  for (const tube of tubesWithSpace) {
-    tube.coins.push({ metal: weightedMetal(state, folio), id: makeId() });
+  const dealSize = folio.tubes;
+  for (let i = 0; i < dealSize; i++) {
+    const indexes = eligibleTubeIndexes(state, folio);
+    if (indexes.length === 0) break;
+    const idx = indexes[randInt(indexes.length)];
+    state.tubes[idx].coins.push({ metal: weightedMetal(state, folio), id: makeId() });
   }
 }
 
@@ -237,12 +247,13 @@ export function countSeals(state: GameState): Record<Metal, number> {
   return counts as Record<Metal, number>;
 }
 
+function hasFullTubeOf(state: GameState, metal: Metal | null, capacity: number): boolean {
+  if (!metal) return false;
+  return state.tubes.some((tube) => tube.coins.length === capacity && tube.coins.every((c) => c.metal === metal));
+}
+
 export function checkFolioComplete(state: GameState, folio: Folio): boolean {
-  const counts = countSeals(state);
-  for (const [metal, need] of Object.entries(folio.target)) {
-    if ((counts[metal as Metal] || 0) < (need || 0)) return false;
-  }
-  return true;
+  return hasFullTubeOf(state, folio.unlockMetal, folio.capacity);
 }
 
 export function evaluateStars(state: GameState, folio: Folio): number {

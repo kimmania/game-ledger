@@ -16,7 +16,7 @@ export type Folio = {
   id: string;
   tier: string;
   name: string;
-  target: Partial<Record<Metal, number>>;
+  unlockMetal: Metal | null;
   metals: Metal[];
   weights: Record<string, number>;
   tubes: number;

@@ -1,4 +1,4 @@
-import { GameState, Folio, Coin, countSeals } from '../engine/index.ts';
+import { GameState, Folio, Coin } from '../engine/index.ts';
 import { METAL_CONFIG, svgShape } from '../engine/metals.ts';
 import { FOLIOS } from '../folios.ts';
 
@@ -62,19 +62,23 @@ export class UIController {
     return el;
   }
 
-  targetPanel(state: GameState, folio: Folio): HTMLElement {
+  targetPanel(_state: GameState, folio: Folio): HTMLElement {
     const el = document.createElement('div');
     el.className = 'ledger-targets';
-    const counts = countSeals(state);
-    for (const [metal, need] of Object.entries(folio.target)) {
-      const cfg = METAL_CONFIG[metal as keyof typeof METAL_CONFIG];
-      const have = counts[metal as keyof typeof counts] || 0;
+    if (!folio.unlockMetal) {
       const item = document.createElement('div');
       item.className = 'target-pip';
-      item.style.setProperty('--glow', cfg.glow);
-      item.innerHTML = `<span class="target-shape">${svgShape(cfg.shape, cfg.hex)}</span><span class="target-label">${cfg.label}: ${have}/${need}</span>`;
+      item.innerHTML = '<span class="target-label">Final Ledger: forge as high as you can</span>';
       el.appendChild(item);
+      return el;
     }
+    const cfg = METAL_CONFIG[folio.unlockMetal as keyof typeof METAL_CONFIG];
+    if (!cfg) return el;
+    const item = document.createElement('div');
+    item.className = 'target-pip';
+    item.style.setProperty('--glow', cfg.glow);
+    item.innerHTML = `<span class="target-shape">${svgShape(cfg.shape, cfg.hex)}</span><span class="target-label">Forge ${cfg.label}: fill any tube</span>`;
+    el.appendChild(item);
     return el;
   }
 

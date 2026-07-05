@@ -12,6 +12,7 @@ import {
   checkFolioComplete,
   evaluateStars,
   carryForwardState,
+  createGameState as engineCreateGameState,
   loadProgress,
   saveProgress,
   saveGame,
@@ -35,21 +36,8 @@ export class LedgerApp {
   progress = loadProgress();
   register = loadRegister();
 
-  constructor(handlers: AppHandlers) {
-    this.handlers = handlers;
-    const saved = loadGame();
-    if (saved && FOLIO_ORDER.includes(saved.folioId)) {
-      this.folio = getFolio(saved.folioId);
-      this.state = saved.state;
-    } else {
-      this.folio = getFolio('coaling-1');
-      this.state = this.createFreshState();
-    }
-    this.state.register = this.register;
-  }
-
   createFreshState(): GameState {
-    const fresh = createGameState(this.folio);
+    const fresh = engineCreateGameState(this.folio);
     fresh.register = this.register;
     return fresh;
   }
@@ -79,6 +67,33 @@ export class LedgerApp {
     this.state = this.createFreshState();
     this.persist();
     this.handlers.render();
+  }
+
+  constructor(handlers: AppHandlers) {
+    this.handlers = handlers;
+    const saved = loadGame();
+    if (saved && FOLIO_ORDER.includes(saved.folioId)) {
+      this.folio = getFolio(saved.folioId);
+      this.state = saved.state;
+      if (this.state.tubes.every((t) => t.coins.length === 0)) {
+        deal(this.state, this.folio);
+      }
+    } else {
+      this.folio = getFolio('coaling-1');
+      this.state = this.createFreshState();
+    }
+    this.state.register = this.register;
+    // seed register with iron and any coins already present on the board
+    this.state.register.add('iron');
+    for (const tube of this.state.tubes) {
+      for (const coin of tube.coins) {
+        if (coin.metal !== ('planchet' as unknown as typeof coin.metal)) {
+          this.state.register.add(coin.metal);
+        }
+      }
+    }
+    saveRegister(this.state.register);
+    this.persist();
   }
 
   persist(saveHistory = true): void {
@@ -264,23 +279,4 @@ export class LedgerApp {
 
 function isPlanchet(c: Coin): boolean {
   return c.metal === ('planchet' as unknown as typeof c.metal);
-}
-
-function createGameState(folio: Folio): GameState {
-  return {
-    folioId: folio.id,
-    tubes: Array.from({ length: folio.tubes }, () => ({ coins: [] })),
-    pool: [],
-    planchets: folio.planchets,
-    flushes: folio.flushes,
-    moves: 0,
-    score: 0,
-    selectedTube: null,
-    pendingState: 'none',
-    completed: false,
-    stars: 0,
-    history: [],
-    register: new Set<string>(),
-    comboMultiplier: 1
-  };
 }
