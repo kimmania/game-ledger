@@ -1,0 +1,17 @@
+{
+  "name": "game-ledger",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Ironclad Ledger - a steampunk coin-sorting merge puzzle PWA",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --port 4173",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "vite": "^6.4.3",
+    "vite-plugin-pwa": "^0.21.2"
+  }
+}
