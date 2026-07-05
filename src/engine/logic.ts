@@ -1,4 +1,5 @@
-import { Metal, Coin, Tube, Folio, GameState, HistoryFrame, METALS } from './types.ts';
+import { Metal, Coin, Tube, Folio, GameState, HistoryFrame, METALS, MERGE_RECIPE } from './types.ts';
+
 
 function randInt(max: number): number {
   const arr = new Uint32Array(1);
@@ -112,12 +113,16 @@ export function checkMerges(tubes: Tube[], capacity: number): { changes: number;
     const top = topCoin.metal;
     if (top === ('planchet' as unknown as typeof top)) continue;
     const run = topRun(tube);
-    if (run === capacity && run >= 2) {
+    const need = MERGE_RECIPE[top];
+    if (run >= need && need >= 2) {
       const nxt = nextTier(top);
       if (nxt) {
-        tube.coins.splice(tube.coins.length - capacity, capacity);
+        // leave any identical coins deeper in the tube untouched
+        const keep = run - need;
+        const consumed = tube.coins.splice(tube.coins.length - run, run);
+        const leftOver = keep > 0 ? consumed.slice(0, keep) : [];
         const newCoin: Coin = { metal: nxt, id: makeId() };
-        tube.coins.push(newCoin);
+        tube.coins.push(...leftOver, newCoin);
         changes++;
         mergeScore += mergeValue(top);
         discovered.push(nxt);

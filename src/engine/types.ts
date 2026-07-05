@@ -29,6 +29,22 @@ export const METALS: Metal[] = [
   'aetherium'
 ];
 
+export const MERGE_RECIPE: Record<Metal, number> = {
+  ore: 5,
+  tin: 6,
+  lead: 7,
+  iron: 8,
+  brass: 9,
+  copper: 10,
+  silver: 11,
+  gold: 12,
+  electrum: 13,
+  platinum: 14,
+  mithril: 15,
+  orichalcum: 16,
+  aetherium: 16
+};
+
 export type Coin = {
   metal: Metal;
   id: string;
